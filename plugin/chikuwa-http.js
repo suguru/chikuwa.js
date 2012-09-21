@@ -1,5 +1,7 @@
 (function(w) {
 
+	var log = $.log;
+
 	// HTTP Request
 	function HttpRequest(method,path,data,callback) {
 		var self = this;

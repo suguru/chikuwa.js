@@ -19,12 +19,21 @@
 
 	var resizes = {};
 	var scrolls = {};
+	var orientations = {};
 
 	$.win
 	.on('resize', function() {
 		var viewport = $.viewport();
 		$.map(resizes, function(name,value) {
-			value.resize(viewport);
+			//setTimeout: for android to get viewport's height
+			setTimeout(function() {
+				value.resize(viewport);
+			}, 0);
+		});
+	})
+	.on('orientationchange', function() {
+		$.map(orientations, function(name,value) {
+			value.orientationchange();
 		});
 	})
 	.on('scroll', function() {
@@ -60,6 +69,9 @@
 				if ('scroll' in self) {
 					scrolls[self.id] = self;
 				}
+				if ('orientationchange' in self) {
+					orientations[self.id] = self;
+				}
 				self.active = true;
 				self.trigger('added');
 			})
@@ -67,6 +79,7 @@
 				log.debug('view removed',self.__name);
 				delete resizes[self.id];
 				delete scrolls[self.id];
+				delete orientations[self.id];
 				self.active = false;
 				self.trigger('removed');
 			});

@@ -16,6 +16,8 @@
 	function isFunction(o) { return typeof o === 'function' || o instanceof Function; }
 	// is number
 	function isNumber(o) { return typeof o === 'number' || o instanceof Number; }
+	// is chikuwa object
+	function isChikuwa(o) { return o instanceof chikuwa; }
 	// is object
 	function isObject(o) { return o instanceof Object; }
 	// is array
@@ -128,6 +130,7 @@
 		'added'  : 'DOMNodeInsertedIntoDocument',
 		'removed': 'DOMNodeRemovedFromDocument'
 	};
+	
 	function eventName(name) {
 		if (name in eventShortcut) {
 			return eventShortcut[name];
@@ -449,7 +452,7 @@
 						if (cb) {
 							for (i = 0; i<a.length; i++)
 								if (a[i]._cb === cb) {
-									this.removeEventListener(name,cb,a[i]._uc);
+									this.removeEventListener(name,a[i],a[i]._uc);
 									a.splice(i,1);
 									if (a.length === 0)
 										delete h[name];
@@ -643,8 +646,13 @@
 			 * append textnode
 			 * @returns
 			 */
-			appendText: function(txt) {
-				this.append(doc.createTextNode(txt));
+			appendText: function(text) {
+				var alen = arguments.length;
+				if (alen > 1){
+					text = $.format.apply($,arguments);
+				}
+				text = text || '';
+				this.append(doc.createTextNode(text));
 				return this;
 			},
 			/**
@@ -887,7 +895,9 @@
 				var duration = 'duration' in opts ? opts.duration : 0.5;
 				
 				var css = {};
-				xbcss(css,'transform-style', 'preserve-3d');
+				if (!options.no3d) {
+					xbcss(css,'transform-style', 'preserve-3d');
+				}
 				xbcss(css,'transition', 'all ' + duration + 's ' + (opts.ease || ''));
 				that.css(css);
 				
@@ -1082,7 +1092,7 @@
 
 			if (isJS) {
 				// create a javascript tag
-				script = tag('script', {type:'text/javascript',src:url});
+				script = tag('script', {type:'text/javascript',src:url, async:"async"});
 				// bind load/error handler
 				['load','error'].forEach(function(n) {
 					script.on(n, function() {
@@ -1423,6 +1433,7 @@
 		start: function() {
 			var self = this;
 			self.paused = false;
+			self.end = false;
 			if (self.delay > 0) {
 				self.timerId = setTimeout(function() {
 					self.next();
@@ -1539,32 +1550,19 @@
 	/**
 	 * hide address bar
 	 */
-	$.hideAddressBar = function(){
-		var outerHeight = $.os.android ? window.outerHeight / window.devicePixelRatio : window.outerHeight;
-		//alert(document.height + ', ' + window.innerHeight + ', ' +(document.height-60 - outerHeight));
-		if (document.height-60 < outerHeight) {
-			//alert(1);
-			//document.body.style.height = (outerHeight)+60 + 'px';
-			document.body.style.minHeight = (outerHeight)+60 + 'px';
-		}
+	function hideAddressBar() {
 		setTimeout(function(){
 			window.scrollTo(0,1);
-		},50);
+		},0);
+		w.addEventListener('orientationchange', hideAddressBar);
 	};
-//	w.addEventListener('load', function() {
-//		alert('loaded');
-//	});
-	//w.addEventListener('load', function() {
-	//	if (window.pageYOffset < 1) {
-	//		$.hideAddressBar();
-	//	}
-	//});
-	w.addEventListener('orientationchange', $.hideAddressBar);
+	$.hideAddressBar = hideAddressBar;
 	
 	w.$ = $;
 
 	// utility funtions
 	$.isString = isString;
+	$.isChikuwa = isChikuwa;
 	$.isObject = isObject;
 	$.isEmptyObject = isEmptyObject;
 	$.isFunction = isFunction;
@@ -1590,7 +1588,7 @@
 			}
 		}
 		args.unshift('['+type+']');
-		if ($.os.ios) {
+		if ($.os.ios || $.os.android) {
 			console.log(args.join(' '));
 		} else {
 			console.log.apply(console, args);

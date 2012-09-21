@@ -15,6 +15,7 @@
  */
 var routes = {};
 var actionmap = {};
+var log = $.log;
 
 function RouteParameters(controller, action, params, queries) {
 	this.controller = controller;
