@@ -127,8 +127,14 @@
 
 	// event shortcuts
 	var eventShortcut = {
-		'added'  : 'DOMNodeInsertedIntoDocument',
-		'removed': 'DOMNodeRemovedFromDocument'
+		// added to DOM tree
+		'added' : 'DOMNodeInsertedIntoDocument',
+		// removed from DOM Tree
+		'removed': 'DOMNodeRemovedFromDocument',
+		// added to DOM node
+		'addedToNode' : 'DOMNodeInserted',
+		// removed from DOM node
+		'removedFromNode' : 'DOMNodeRemoved'
 	};
 	
 	function eventName(name) {
@@ -1333,15 +1339,23 @@
 	/**
 	 * format message patterns
 	 * $.format("{1} likes {2}", 'John', 'Anna');
+	 * $.format("{a} likes {b}", {a:'John', b:'Anna'});
 	 */
 	$.format = function() {
 		var args = arguments;
 		if (!args[0]) {
 			return null;
 		}
-		return args[0].replace(/\{(\d+)\}/g, function() {
-			return args[arguments[1]];
-		});
+
+		if(isObject(args[1])){
+			return args[0].replace(/(.*?)\{(.+?)\}([^\{]*)/g, function() {
+				return arguments[1] + (args[1][arguments[2]] || "") + arguments[3];
+			});
+		} else {
+			return args[0].replace(/\{(\d+)\}/g, function() {
+				return args[arguments[1]];
+			});
+		}
 	};
 	
 	/**
@@ -1515,7 +1529,7 @@
 	 */
 	$.parseQuery = function(query) {
 		if(query === null) return false;
-		var query = query || location.search;
+		query = query || location.search;
 		if (!query) {
 			var href = location.href;
 			var idx = href.indexOf('?');
