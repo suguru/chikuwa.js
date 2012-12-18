@@ -1555,7 +1555,7 @@
 	$.createQuery = function(params) {
 		var q = '';
 		for (var n in params) {
-			q += encodeURI(n)+'='+encodeURI(params[n])+'&';
+			q += encodeURIComponent(n)+'='+encodeURIComponent(params[n])+'&';
 		}
 		return q.slice(0, -1);
 	};
